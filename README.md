@@ -6,6 +6,8 @@ Welcome! You are currently in Gabrielle's repository for Math 760, Multivariate 
   - .dat files of certain data parts of the books
 2. Documents
   - Documents related to the course
-3. License
-4. README
+3. Notes
+  - Chapter/Meeting notes
+4. License
+5. README
   - What you're reading now!
