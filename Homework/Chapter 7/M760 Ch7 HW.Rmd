@@ -1,0 +1,20 @@
+---
+title: "Math 760"
+author: "Gabrielle Salamanca"
+date: "Jan 29, 2024"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Chapter 7
+
+## 2.
+## 8.
+## 9.
+## 12.
+## 17.
+## 22.
+## 25.

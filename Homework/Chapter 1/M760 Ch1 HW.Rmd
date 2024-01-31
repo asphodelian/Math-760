@@ -1,0 +1,125 @@
+---
+title: "Math 760"
+author: "Gabrielle Salamanca"
+date: "Jan 29, 2024"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Chapter 1
+
+## 6. The data in Table 1.5 are 42 measurements on air-pollution variables recorded at 12:00 noon in the LA area on different days.
+
+```{r}
+pollute <- read.table("D:/Coding/R Storage/T1-5.dat", header = FALSE)
+
+# vars
+x1 <- pollute$V1 # wind
+x2 <- pollute$V2 # solar radiation
+x3 <- pollute$V3 # CO
+x4 <- pollute$V4 # NO
+x5 <- pollute$V5 # NO2
+x6 <- pollute$V6 # O3
+x7 <- pollute$V7 # HC
+```
+
+### (a) Plot the marigianl dot diagrams for all the variables
+
+### (b) Construct $\bar{x}$, $S_n$, and **R** arrays, and interpret entries in **R**.
+
+## 12. Define the distance from the point $P = (x_1, x_2)$ to the origin $O = (0,0)$ as $d(O,P) = max(|x_1|,|x_2|)$
+
+### (a) Compute the distance from $P = (-3,4)$ to the origin.
+
+### (b) Plot the locus of points whose squared distance from the origin is 1.
+
+### (c) Generalize the foregoing distance expression to the points in p dimensions.
+
+## 14. Table 1.6 contains some of the raw data discussed in Section 1.2. Two different visual stimuli (S1 and S2) produced responses in both the left eye (L) and the right eye (R) of subjects in the study groups. The values recoreded in the table include $x_1$ (subject's age); $x_2$ (total response to both eyes to stimulus S1, $|S1L + S1R|$); $x_3$ (difference between responses of eyes to stimulus S1, $||S1L - S1R$); and so forth.
+
+```{r}
+ms <- read.table("D:/Coding/R Storage/T1-6.dat", header = FALSE)
+
+# vars
+x1 <- ms$V1 # age
+x2 <- ms$V2 # S1L + S1R
+x3 <- ms$V3 # S1L - S1R
+x4 <- ms$V4 # S2L + S2R
+x5 <- ms$V5 # S2L - S2R
+x6 <- ms$V6 # Sclerosis
+```
+
+### (a) Plot the two-dimensional scatter diagram for the variables $x_2$ and $x_4$ for multiple-sclerosis group. Comment on the appearance of the diagram.
+
+### (b) Compute the $\bar{x}$, $S_n$, and **R** for the non-multiple-sclerosis and multiple-sclerosis groups separately.
+
+## 19. Create the scatter plot and boxplot displays of Figure 1.5 for (a) the mineral-content data in Table 1.8 and the national-track-records data in Table 1.9.
+
+### (a)
+
+```{r}
+mineral <- read.table("D:/Coding/R Storage/T1-8.dat", header = FALSE)
+
+# vars
+x1 <- mineral$V1 # dominant radius
+x2 <- mineral$V2 # radius
+x3 <- mineral$V3 # dominant humerus
+x4 <- mineral$V4 # humerus
+x5 <- mineral$V5 # dominant ulna
+x6 <- mineral$V6 # ulna
+```
+
+### (b)
+
+```{r}
+track <- read.table("D:/Coding/R Storage/T1-9.dat", sep = "\t", header = FALSE)
+
+# vars
+x1 <- track$V1 # country
+x2 <- track$V2 # 100m (s)
+x3 <- track$V3 # 200m (s)
+x4 <- track$V4 # 400m (s)
+x5 <- track$V5 # 800m (min)
+x6 <- track$V6 # 1500m (min)
+x7 <- track$V5 # 3000m (min)
+x8 <- track$V6 # Marathon (min)
+```
+
+## 20. Refer to the bankruptcy data in Table 11.4, page 657, and on the folllowing website www.prenhall.com/statistics. Using appropriate computer software,
+
+```{r}
+bank <- read.table("D:/Coding/R Storage/T11-4.dat", header = FALSE)
+
+# vars
+x1 <- bank$V1 # CF/TD
+x2 <- bank$V2 # NI/TA
+x3 <- bank$V3 # CA/CL
+x4 <- bank$V4 # CA/NS
+x5 <- bank$V5 # pop, i = 1,2
+```
+
+
+### (a) View the entire data set in $x_1$, $x_2$, $x_3$ space. Rotate the coordinate axes in various directions. Check for unusual observations.
+
+### (b) Highlight the set of points corresponding to the bankrupt firms. Examine various 3D perspectives. Are there some orientations of 3D space for which bankrupt firms can be distinguised from the nonbankrupt firms? Are there obserservations in each of the two groups that are likely to have a significant impact on any rule developed to classify firms based on the sample means, variances, and covariances calculated from these data (See Exercise 11.24).
+
+## 24. Using the utility data in Table 12.4, page 688, and on the web at www.prenhall.com/statistics. represent the public utility companies as Chernoff faces with assignments of variables to facial characteristics different from those considered in Example 1.12. Compare your faces with the faces in Figure 1.17. Are different groupings indicated?
+
+```{r}
+utility <- read.table("D:/Coding/R Storage/T12-4.dat", header = FALSE)
+
+# vars
+x1 <- utility$V1 # fixed-charge coverate ratio (income/debt)
+x2 <- utility$V2 # rate of return on capital
+x3 <- utility$V3 # cost per KW capacity in place
+x4 <- utility$V4 # annual load factor
+x5 <- utility$V5 # peak kWh demand growth from 1974 and 1975
+x6 <- utility$V6 # sales (kWh use/year)
+x7 <- utility$V7 # % nuclear
+x8 <- utility$V8 # total fuel costs (cents/kWh)
+x9 <- utility$V9 # company
+```
+
