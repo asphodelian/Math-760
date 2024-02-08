@@ -11,6 +11,13 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Chapter 1
 
+```{r}
+library(ggplot2)
+library(ggpubr)
+library(cowplot)
+```
+
+
 ## 6. The data in Table 1.5 are 42 measurements on air-pollution variables recorded at 12:00 noon in the LA area on different days.
 
 ```{r}
@@ -26,19 +33,54 @@ x6 <- pollute$V6 # O3
 x7 <- pollute$V7 # HC
 ```
 
-### (a) Plot the marigianl dot diagrams for all the variables
+### (a) Plot the marigianl dot diagrams for all the variables.
 
 ### (b) Construct $\bar{x}$, $S_n$, and **R** arrays, and interpret entries in **R**.
+
+The $\bar{x}$ array is:
+
+```{r}
+pollMat <- as.matrix(pollute)
+ID <- as.matrix(rep(1, dim(pollMat)[1]))
+n <- dim(pollMat)[1]
+xbar <- 1/n*t(pollMat)%*%ID
+print(xbar)
+```
+
+The $S_n$ array is:
+
+```{r}
+meanMat <- matrix(data = 1, nrow = n)%*%cbind(xbar[[1]], xbar[[2]], xbar[[3]], xbar[[4]], xbar[[5]], xbar[[6]], xbar[[7]])
+poll <- pollMat - meanMat
+coVar <- 1/(n-1)*t(poll)%*%poll
+print(coVar)
+```
+
+The **R** array is:
+
+```{r}
+D <- diag(diag(coVar)^(-1/2))
+corr <- D%*%coVar%*%D
+print(corr)
+```
+
+Most of the entries in the correlation array are quite small and have a negative correlation with $v_1$, wind. But rows $v_3$ and $v_5$ generally have a positive correlation with the other variables, besides $v_1$. Row $v_7$ is the only one that has a positive correlation with the rest of the variables.
 
 ## 12. Define the distance from the point $P = (x_1, x_2)$ to the origin $O = (0,0)$ as $d(O,P) = max(|x_1|,|x_2|)$
 
 ### (a) Compute the distance from $P = (-3,4)$ to the origin.
 
+$P = (x_1, x_2) \Rightarrow P = (-3,4)$ 
+
+$d(O,P) = max(|x_1|,|x_2|) \Rightarrow d(O,P) = max(|-3|,|4|)$
+
+The distance from P = (-3,4) to the origin is 4.
+
 ### (b) Plot the locus of points whose squared distance from the origin is 1.
 
 ### (c) Generalize the foregoing distance expression to the points in p dimensions.
 
-## 14. Table 1.6 contains some of the raw data discussed in Section 1.2. Two different visual stimuli (S1 and S2) produced responses in both the left eye (L) and the right eye (R) of subjects in the study groups. The values recoreded in the table include $x_1$ (subject's age); $x_2$ (total response to both eyes to stimulus S1, $|S1L + S1R|$); $x_3$ (difference between responses of eyes to stimulus S1, $||S1L - S1R$); and so forth.
+## 14. Table 1.6 contains some of the raw data discussed in Section 1.2. Two different visual stimuli (S1 and S2) produced responses in both the left eye (L) and the right eye (R) of subjects in the study groups. The values recoreded in the table include $x_1$ (subject's age); $x_2$ (total response to both eyes to stimulus S1, $|S1L + S1R|$); $x_3$ (difference between responses of eyes to stimulus S1, $|S1L - S1R|$); and so forth.
 
 ```{r}
 ms <- read.table("D:/Coding/R Storage/T1-6.dat", header = FALSE)
