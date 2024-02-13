@@ -12,11 +12,11 @@ knitr::opts_chunk$set(echo = TRUE)
 # Chapter 1
 
 ```{r}
+library(aplpack)
 library(ggplot2)
 library(ggpubr)
 library(cowplot)
 ```
-
 
 ## 6. The data in Table 1.5 are 42 measurements on air-pollution variables recorded at 12:00 noon in the LA area on different days.
 
@@ -34,6 +34,8 @@ x7 <- pollute$V7 # HC
 ```
 
 ### (a) Plot the marigianl dot diagrams for all the variables.
+
+
 
 ### (b) Construct $\bar{x}$, $S_n$, and **R** arrays, and interpret entries in **R**.
 
@@ -78,57 +80,158 @@ The distance from P = (-3,4) to the origin is 4.
 
 ### (b) Plot the locus of points whose squared distance from the origin is 1.
 
+
+
+
 ### (c) Generalize the foregoing distance expression to the points in p dimensions.
+
+The generalization of the foregoing distance expression in terms of p dimensions is:
+
+$d(O,P) = max(|x_1|,|x_2|) \Rightarrow d(O,P) = max(|x_1|,|x_2|, ..., |x_p|)$
 
 ## 14. Table 1.6 contains some of the raw data discussed in Section 1.2. Two different visual stimuli (S1 and S2) produced responses in both the left eye (L) and the right eye (R) of subjects in the study groups. The values recoreded in the table include $x_1$ (subject's age); $x_2$ (total response to both eyes to stimulus S1, $|S1L + S1R|$); $x_3$ (difference between responses of eyes to stimulus S1, $|S1L - S1R|$); and so forth.
 
 ```{r}
-ms <- read.table("D:/Coding/R Storage/T1-6.dat", header = FALSE)
+multiScler <- read.table("D:/Coding/R Storage/T1-6.dat", header = FALSE)
 
-# vars
-x1 <- ms$V1 # age
-x2 <- ms$V2 # S1L + S1R
-x3 <- ms$V3 # S1L - S1R
-x4 <- ms$V4 # S2L + S2R
-x5 <- ms$V5 # S2L - S2R
-x6 <- ms$V6 # Sclerosis
+# splitting the data by v6
+non <- subset(multiScler, V6 == 0)
+ms <- subset(multiScler, V6 == 1)
+
+# removing V6 from both sets
+non <- non[,-6]
+ms <- ms[,-6]
 ```
 
 ### (a) Plot the two-dimensional scatter diagram for the variables $x_2$ and $x_4$ for multiple-sclerosis group. Comment on the appearance of the diagram.
 
-### (b) Compute the $\bar{x}$, $S_n$, and **R** for the non-multiple-sclerosis and multiple-sclerosis groups separately.
-
-## 19. Create the scatter plot and boxplot displays of Figure 1.5 for (a) the mineral-content data in Table 1.8 and the national-track-records data in Table 1.9.
-
-### (a)
-
 ```{r}
-mineral <- read.table("D:/Coding/R Storage/T1-8.dat", header = FALSE)
-
 # vars
-x1 <- mineral$V1 # dominant radius
-x2 <- mineral$V2 # radius
-x3 <- mineral$V3 # dominant humerus
-x4 <- mineral$V4 # humerus
-x5 <- mineral$V5 # dominant ulna
-x6 <- mineral$V6 # ulna
+x2 <- ms$V2 #S1R + S1L
+x4 <- ms$V4 #S2R + S2L
+
+# plot
+plot(x2, x4, main = "Visual Stimuli in Eyes", xlab = "S1", ylab = "S2", pch = 10)
 ```
 
-### (b)
+There is a strong positive correlation according to this scatter plot, and there does not seem to be any outliers.
+
+### (b) Compute the $\bar{x}$, $S_n$, and **R** for the non-multiple-sclerosis and multiple-sclerosis groups separately.
+
+Let's start with the multiple-sclerosis group.
+
+The $\bar{x}$ array is:
 
 ```{r}
-track <- read.table("D:/Coding/R Storage/T1-9.dat", sep = "\t", header = FALSE)
+msMat <- as.matrix(ms)
+ID <- as.matrix(rep(1, dim(msMat)[1]))
+n <- dim(msMat)[1]
+xbar <- 1/n*t(msMat)%*%ID
+print(xbar)
+```
+
+The $S_n$ array is:
+
+```{r}
+meanMat <- matrix(data = 1, nrow = n)%*%cbind(xbar[[1]], xbar[[2]], xbar[[3]], xbar[[4]], xbar[[5]])
+multi <- msMat - meanMat
+coVar <- 1/(n-1)*t(multi)%*%multi
+print(coVar)
+```
+
+The **R** array is:
+
+```{r}
+D <- diag(diag(coVar)^(-1/2))
+corr <- D%*%coVar%*%D
+print(corr)
+```
+
+Now, let's compute for the non-multiple-sclerosis group.
+
+The $\bar{x}$ array is:
+
+```{r}
+nonMat <- as.matrix(non)
+ID <- as.matrix(rep(1, dim(nonMat)[1]))
+n <- dim(nonMat)[1]
+non.xbar <- 1/n*t(nonMat)%*%ID
+print(non.xbar)
+```
+
+The $S_n$ array is:
+
+```{r}
+non.meanMat <- matrix(data = 1, nrow = n)%*%cbind(non.xbar[[1]], non.xbar[[2]], non.xbar[[3]], non.xbar[[4]], non.xbar[[5]])
+nons <- nonMat - non.meanMat
+non.coVar <- 1/(n-1)*t(nons)%*%nons
+print(non.coVar)
+```
+
+The **R** array is:
+
+```{r}
+nonD <- diag(diag(non.coVar)^(-1/2))
+nonCorr <- nonD%*%non.coVar%*%nonD
+print(nonCorr)
+```
+
+## 18. Convert the national track records for women in Table 1.9 to speeds measured in meters per second. For example, the record speed for the 1100-m dash for Argentinian women is 100 m/11.57 sec $\approx$ 8.643 m/sec. Notice that the records for the 800-m, 1500-m, 3000-m, and marathon runs are measured in minutes. The marathon is 26.2 miles, or 42,195 meters long. Compute $\bar{x}$, $S_n$, and **R** arrays. Notice the magnitudes of the correlation coefficients as you go from the shorter (100-meter) to the longer (marathon) running distances. Interpret these pairwise correlations.
+
+Let's first convert columns 5 through 8 from minute to second to match the first 4 columns before diving into the arrays.
+
+```{r}
+track <- read.table("D:/Coding/R Storage/T1-9.dat", header = FALSE, sep = "\t")
 
 # vars
 x1 <- track$V1 # country
-x2 <- track$V2 # 100m (s)
-x3 <- track$V3 # 200m (s)
-x4 <- track$V4 # 400m (s)
-x5 <- track$V5 # 800m (min)
-x6 <- track$V6 # 1500m (min)
-x7 <- track$V5 # 3000m (min)
-x8 <- track$V6 # Marathon (min)
+x2 <- track$V2 # 100m/s
+x3 <- track$V3 # 200m/s
+x4 <- track$V4 # 400m/s
+x5 <- track$V5# 800m/min
+x6 <- track$V6 # 1500m/min
+x7 <- track$V7 # 3000m/min
+x8 <- track$V8 # marathon/min
+
+# per second
+OG <- track[,1:4]
+second <- track[,5:8]*60
+second$V1 <- track$V1
+
+record <- merge(OG, second, by = "V1")
+record <- record[,-1]
 ```
+
+Now, we can delve into the arrays.
+
+The $\bar{x}$ array is:
+
+```{r}
+recordMat <- as.matrix(record)
+ID <- as.matrix(rep(1, dim(recordMat)[1]))
+n <- dim(recordMat)[1]
+xbar <- 1/n*t(recordMat)%*%ID
+print(xbar)
+```
+
+The $S_n$ array is:
+
+```{r}
+meanMat <- matrix(data = 1, nrow = n)%*%cbind(xbar[[1]], xbar[[2]], xbar[[3]], xbar[[4]], xbar[[5]], xbar[[6]], xbar[[7]])
+meter <- recordMat - meanMat
+coVar <- 1/(n-1)*t(meter)%*%meter
+print(coVar)
+```
+
+The **R** array is:
+
+```{r}
+D <- diag(diag(coVar)^(-1/2))
+corr <- D%*%coVar%*%D
+print(corr)
+```
+
+All the correlations are positive through each pair, decreasing in value as the running distances between pairs increase.
 
 ## 20. Refer to the bankruptcy data in Table 11.4, page 657, and on the folllowing website www.prenhall.com/statistics. Using appropriate computer software,
 
@@ -143,7 +246,6 @@ x4 <- bank$V4 # CA/NS
 x5 <- bank$V5 # pop, i = 1,2
 ```
 
-
 ### (a) View the entire data set in $x_1$, $x_2$, $x_3$ space. Rotate the coordinate axes in various directions. Check for unusual observations.
 
 ### (b) Highlight the set of points corresponding to the bankrupt firms. Examine various 3D perspectives. Are there some orientations of 3D space for which bankrupt firms can be distinguised from the nonbankrupt firms? Are there obserservations in each of the two groups that are likely to have a significant impact on any rule developed to classify firms based on the sample means, variances, and covariances calculated from these data (See Exercise 11.24).
@@ -154,7 +256,7 @@ x5 <- bank$V5 # pop, i = 1,2
 utility <- read.table("D:/Coding/R Storage/T12-4.dat", header = FALSE)
 
 # vars
-x1 <- utility$V1 # fixed-charge coverate ratio (income/debt)
+x1 <- utility$V1 # fixed-charge coverage ratio (income/debt)
 x2 <- utility$V2 # rate of return on capital
 x3 <- utility$V3 # cost per KW capacity in place
 x4 <- utility$V4 # annual load factor
@@ -163,5 +265,30 @@ x6 <- utility$V6 # sales (kWh use/year)
 x7 <- utility$V7 # % nuclear
 x8 <- utility$V8 # total fuel costs (cents/kWh)
 x9 <- utility$V9 # company
+```
+
+We'll first try the Chernoff faces with the default functions.
+
+```{r}
+faces(utility[,1:8], face.type = 0, main = "Public Utility Data")
+```
+
+Our faces are quite notably different with the ones in Example 1.13 and Figure 1.17. If we grouped our faces like in Example 1.13, I could nearly say the clusters are near similarly.
+
+Let's try assigning each variable with one feature, a few may double up. For the features that didn't receive a variable, they will be assigned a constant. 
+
+```{r}
+uti <- matrix(1, nrow = 22, ncol = 15)
+
+uti[,1] <- x1
+uti[,2] <- x2
+uti[, c(4,5)] <- x3
+uti[,7] <- x4
+uti[,8] <- x5
+uti[, c(14,15)] <- x6
+uti[,6] <- x7
+uti[, c(12,13)] <- x8
+
+faces(uti, face.type = 0, main = "Public Utility Data")
 ```
 
