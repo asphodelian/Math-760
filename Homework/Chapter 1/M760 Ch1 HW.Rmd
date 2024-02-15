@@ -2,20 +2,30 @@
 title: "Math 760"
 author: "Gabrielle Salamanca"
 date: "Jan 29, 2024"
-output: word_document
+output:
+  word_document: default
+  pdf_document: default
+  html_document:
+    df_print: paged
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
 ```
 
 # Chapter 1
 
 ```{r}
 library(aplpack)
-library(ggplot2)
-library(ggpubr)
 library(cowplot)
+library(ggplot2)
+library(ggExtra)
+library(ggpubr)
+library(plotly)
+library(rgl)
+library(rglwidget)
+library(webshot)
+library(webshot2)
 ```
 
 ## 6. The data in Table 1.5 are 42 measurements on air-pollution variables recorded at 12:00 noon in the LA area on different days.
@@ -33,8 +43,21 @@ x6 <- pollute$V6 # O3
 x7 <- pollute$V7 # HC
 ```
 
-### (a) Plot the marigianl dot diagrams for all the variables.
+### (a) Plot the mariginal dot diagrams for all the variables.
 
+```{r}
+pairs(pollute)
+
+# dot plot
+par(mfrow = c(1,2))
+dotchart(x1, labels = row.names(pollute), cex = 1, main = "Air-Pollution: Wind")
+dotchart(x2, labels = row.names(pollute), cex = 1, main = "Air-Pollution: Solar Radiation")
+dotchart(x3, labels = row.names(pollute), cex = 1, main = "Air-Pollution: CO")
+dotchart(x4, labels = row.names(pollute), cex = 1, main = "Air-Pollution: NO")
+dotchart(x5, labels = row.names(pollute), cex = 1, main = "Air-Pollution: NO2")
+dotchart(x6, labels = row.names(pollute), cex = 1, main = "Air-Pollution: O3")
+dotchart(x7, labels = row.names(pollute), cex = 1, main = "Air-Pollution: HC")
+```
 
 
 ### (b) Construct $\bar{x}$, $S_n$, and **R** arrays, and interpret entries in **R**.
@@ -80,8 +103,10 @@ The distance from P = (-3,4) to the origin is 4.
 
 ### (b) Plot the locus of points whose squared distance from the origin is 1.
 
-
-
+```{r}
+square <- ggplot() + geom_rect(aes(xmin = -1, xmax = 1, ymin = -1, ymax = 1)) + theme_minimal_grid(12)
+square + coord_equal()
+```
 
 ### (c) Generalize the foregoing distance expression to the points in p dimensions.
 
@@ -248,7 +273,19 @@ x5 <- bank$V5 # pop, i = 1,2
 
 ### (a) View the entire data set in $x_1$, $x_2$, $x_3$ space. Rotate the coordinate axes in various directions. Check for unusual observations.
 
-### (b) Highlight the set of points corresponding to the bankrupt firms. Examine various 3D perspectives. Are there some orientations of 3D space for which bankrupt firms can be distinguised from the nonbankrupt firms? Are there obserservations in each of the two groups that are likely to have a significant impact on any rule developed to classify firms based on the sample means, variances, and covariances calculated from these data (See Exercise 11.24).
+```{r}
+plot3d(x1, x2, x3, type = "p", size = 6, lit = FALSE, box = FALSE, col = c("lightseagreen","mediumpurple1","goldenrod1"),expand = 1, main = "X1 vs X2 vs X3", sub = "3-D Plot", xlab = "X1", ylab = "X2", zlab = "X3")
+```
+
+The 3D plot shows us an exponential, whether it goes up or down depends on how you look at it. There could be a few unusual observations, ones that stray a bit far from curve. They have been circled below.
+
+### (b) Highlight the set of points corresponding to the bankrupt firms. Examine various 3D perspectives. Are there some orientations of 3D space for which bankrupt firms can be distinguished from the nonbankrupt firms? Are there observations in each of the two groups that are likely to have a significant impact on any rule developed to classify firms based on the sample means, variances, and covariances calculated from these data (See Exercise 11.24).
+
+```{r}
+plot_ly(x = x1, y = x2, z = x3, type = "scatter3d", mode = "markers", color = x5, colors = "Paired")
+```
+
+Yes, there are orientations of 3D space for which bankrupt firms can be distinguished from the non-bankrupt firms. They have also been color-coded to make it easier to distinguish them: the bankrupt observations are colored blue, while the non-bankrupt ones are colored brown. There are observations that are likely to have a significant impact on any rule developed to classify firms based on the sample means, variances, and covariances calculated from this data. There are a few or so observations that overlap into the group that they aren't part of.
 
 ## 24. Using the utility data in Table 12.4, page 688, and on the web at www.prenhall.com/statistics. represent the public utility companies as Chernoff faces with assignments of variables to facial characteristics different from those considered in Example 1.12. Compare your faces with the faces in Figure 1.17. Are different groupings indicated?
 
@@ -292,3 +329,5 @@ uti[, c(12,13)] <- x8
 faces(uti, face.type = 0, main = "Public Utility Data")
 ```
 
+```{r, ref.label=knitr::all_labels(), echo = TRUE, eval = FALSE}
+```
