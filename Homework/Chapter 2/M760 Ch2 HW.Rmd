@@ -12,28 +12,31 @@ knitr::opts_chunk$set(echo = TRUE)
 # Chapter 2
 
 ```{r}
+library(expm)
 library(Matrix)
+library(matrixcalc)
 ```
-
 
 ## 4. When $A^{-1}$ and $B^{-1}$ exist, prove each of the following.
 
-```{r}
-Amat <- c(2,1,1,3)
-Bmat <- c(1,4,2,5,0,3)
-A <- matrix(Amat, nrow = 2 , ncol = 2, byrow = TRUE)
-B <- matrix(Bmat, nrow = 2 , ncol = 3, byrow = TRUE)
-```
+*Hint*: Part (a) can be proved by noting that $AA^{-1} = I)$, I = I', and $(AA^{-1}) = (A^{-1})'A'$. Part (b) follows from $(B^{-1}A^{-1})AB = B^{-1}(A^{-1}A)B = B^{-1}B = I$
 
 ### (a) $(A')^{-1} = (A^{-1})'$
 
+We know:
+
+I = I'
+$AA^{-1} = I = A^{-1}A$
+
+Therefore, $I' = I = (AA^{-1})' = (A^{-1})'A'$ and $I = (A^{-1}A)' = A'(A^{-1})'$. And because of this, this means $(A')^{-1}$ is the inverse of A', $(A')^{-1} = (A^{-1})'$
+
 ### (b) $(AB)^{-1} = B^{-1}A^{-1}$
 
-We know from Ch2.2:
+We know:
 
-If $\exists$ a matrix B s.t. BA = AB = I, then B is called the inverse of A and is denoted by $A^{-1}$.
+If $\exists$ a matrix B s.t. BA = AB = I, then B is called the inverse of A and is denoted by $A^{-1}$. And, $(B^{-1}A^{-1})AB = B^{-1}(A^{-1}A)B = B^{-1}B(I) = I(I) = I$
 
-*Hint*: Part (a) can be proved by noting that $AA^{-1} = I)$, I = I', and $(AA^{-1}) = (A^{-1})'A'$. Part (b) follows from $(B^{-1}A^{-1})AB = B^{-1}(A^{-1}A)B = B^{-1}B = I$
+So following all that, AB has inverse $(AB)^{-1} = B^{-1}A^{-1}$
 
 ## 5. Check that
 
@@ -41,21 +44,22 @@ $Q = \begin{bmatrix} \frac{5}{13} & \frac{12}{13}\\ -\frac{12}{13} & \frac{5}{13
 
 is an orthogonal matrix.
 
-We want to know if $Q*Q^T = I$, to prove that Q is an orthogonal matrix. The $Q^T$ is
+We want to know if $Q*Q^T = I$, to prove that Q is an orthogonal matrix. The $Q^T$ is:
 
 ```{r}
 Qmat <- c(5/13,12/13,-12/13,5/13)
 Q <- matrix(Qmat, nrow = 2, ncol = 2, byrow = TRUE)
 QT <- t(Q)
-QT
+print(QT)
 ```
 
 Now, we'll multiply the two matrices and see if the answer is an identity matrix.
 
 ```{r}
-Q*QT
+Q%*%QT
 ```
 
+Thus, Q is an orthogonal matrix.
 
 ## 6. Let
 
@@ -71,30 +75,78 @@ A <- matrix(aMat, nrow = 2, ncol = 2, byrow = TRUE)
 
 ```{r}
 isSymmetric(A)
+AT <- t(A)
+cat(A," = ", AT)
 ```
 
-Yes, **A** is symmetric.
+Yes, **A** is symmetric. 
 
 ### (b) Show that **A** is a positive definite
 
 ```{r}
-det(A)
+is.positive.definite(A)
+ev <- eigen(A)
+value <- ev$values
+cat("The eigenvalues of A are:", value, ".")
 ```
 
+Because the eigenvalues are positive, A is a positive definite
 
 ## 14. Show that $Q'_{(p \ x \ p)}, A_{(p \ x \ p)}, Q_{(p \ x \ p)}$, and $A_{(p \ x \ p)}$ have the same eigenvalues if Q is orthogonal. 
 
 Hint: Let $\lambda$ be an eigenvalue of **A**. Then $0 = |A - \lambda I|$. By Exercise 2.13 and Result 2A.11(e), we can write $0 = |Q'||A - \lambda I||Q| = |Q'AQ - \lambda I|$, since Q'Q = I. 
 
-## 20. Determine the square-root matrix $A^{1/2}$, using the matrix A in Exercise 2.3. Also, determine $A^{-1/2}$, and show that $A^{1/2}A^{-1/2} = A^{-1/2}A^{1/2} =I$
+With the hint in mind, we can write: $0 = |Q||A - \lambda I||Q'| = |QAQ' - \lambda I|$. If Q is orthogonal, then $\lambda$ is also an eigenvalue of QAQ'.
 
-## 26. Use $\Sigma$ as given in Exervise 2.25
+## 20. Determine the square-root matrix $A^{1/2}$, using the matrix A in Exercise 2.3. Also, determine $A^{-1/2}$, and show that $A^{1/2}A^{-1/2} = A^{-1/2}A^{1/2} =I$.
 
-$\Sigma = \begin{bmatrix} 25 & -2 & 4\\  -2 & 4 & 1\\ 4 & 1 & 9 \end{bmatrix}$
+$A^{1/2}$ is
 
-### (a) Determine $\rho$ and $V^{1/2}$.
+```{r}
+aMat <- c(2,1,1,3)
+A <- matrix(aMat, nrow = 2, ncol = 2, byrow = TRUE)
+sqrtMat <- sqrtm(A)
+sqrtMat
+```
 
-### (b) Multiply your matrices to check the relation $V^{1/2} \rho V^{1/2} = \Sigma$.
+$A^{-1/2}$ is
+
+```{r}
+neg <- solve(sqrtMat)
+neg
+```
+
+Now, we prove $A^{1/2}A^{-1/2} = A^{-1/2}A^{1/2} = I$.
+
+```{r}
+AAneg <- sqrtMat%*%neg
+negAA <- neg%*%sqrtMat
+AAneg
+negAA
+```
+
+## 26. Use $\Sigma$ as given in Exercise 2.25
+
+$\Sigma =$
+
+```{r}
+sigMat <- c(25, -2, 4,
+            -2, 4, 1,
+            4, 1, 9)
+sigma <- matrix(sigMat, nrow = 3, ncol = 3, byrow = TRUE)
+sigma
+```
+
+### (a) Find $\rho_{13}$.
+
+$\rho_{13} = \frac{\sigma_{13}}{\sqrt{\sigma_{11}} \sqrt{\sigma_{22}}}$ =
+
+```{r}
+
+```
+
+
+### (b) Find the correlation between $X_1$ and $\frac{1}{2}X_2 + \frac{1}{2}X_3$.
 
 ## 32. You are given the random vector $X' = \begin{bmatrix} X_1, X_2, ..., X_5 \end{bmatrix}$ with mean vector $\mu_X' = \begin{bmatrix} 2, 4, -1, 3 \end{bmatrix}$, and variance-covariance matrix
 
