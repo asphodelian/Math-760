@@ -6,7 +6,7 @@ output: word_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
 ```
 
 # Chapter 2
@@ -142,11 +142,59 @@ sigma
 $\rho_{13} = \frac{\sigma_{13}}{\sqrt{\sigma_{11}} \sqrt{\sigma_{22}}}$ =
 
 ```{r}
-
+p13 <- 4/(sqrt(25)*sqrt(9))
+p13
 ```
 
-
 ### (b) Find the correlation between $X_1$ and $\frac{1}{2}X_2 + \frac{1}{2}X_3$.
+
+We want to know:
+
+$\rho \left(X_1, \frac{1}{2}X_2 + \frac{1}{2}X_3 \right)$
+
+We know:
+
+$\rho (X_1, X_2) = \frac{Cov(X_1,X_2)}{\sqrt(VX_1) \sqrt(VX_@)}$
+
+Then,
+
+$1(X_1) + 0(X_2) + 0(X_3) = X_1 \Rightarrow c'_1X$, where $c'_1 = [1,0,0]$ 
+
+$0(X_1) + \frac{1}{2}(X_2) + \frac{1}{2}(X_3) = \frac{1}{2}X_2 + \frac{1}{2}X_3 \Rightarrow c'_2X$, where $c'_2 = \left[ 0,\frac{1}{2},\frac{1}{2} \right]$
+
+From there, we can find the variances and covariance.
+
+$V(X_1) = \sigma_{11} =$
+
+```{r}
+var1 <- sigma[1,1]
+var1
+```
+
+Because we have the X's multiplied by a constant for $(X_2,X_3)$, the variance will be in this form: $V(c'X) = c' \Sigma c$ (2-43).
+
+$V \left(\frac{1}{2}X_2 + \frac{1}{2}X_3 \right) = \frac{1}{4}V(X_2 + X_3) = \frac{1}{4}( \sigma_{22} + 2\sigma_{23} + \sigma_{33})$
+
+```{r}
+var2 <- 0.25*(sigma[2,2] + 2*sigma[2,3] + sigma[3,3])
+var2
+```
+
+The same applies for the covariance: $\Sigma_z = Cov(Z) = Cov(CX) = C \Sigma_X C'$
+
+$Cov \left( X_1, \frac{1}{2}X_2 + \frac{1}{2}X_3 \right) = \frac{1}{2}Cov(X_1, X_2 + X_3) = \frac{1}{2}(\sigma_{12} + \sigma_{13})$
+
+```{r}
+cov <- 0.5*(sigma[1,2] + sigma[1,3])
+cov
+```
+
+Finally, we can plug everything in.
+
+```{r}
+rho <- cov/(sqrt(var1)*sqrt(var2))
+rho
+```
 
 ## 32. You are given the random vector $X' = \begin{bmatrix} X_1, X_2, ..., X_5 \end{bmatrix}$ with mean vector $\mu_X' = \begin{bmatrix} 2, 4, -1, 3 \end{bmatrix}$, and variance-covariance matrix
 
@@ -162,27 +210,160 @@ $A = \begin{bmatrix} 1 & -1\\ 1 & 1 \end{bmatrix}$ and $B = \begin{bmatrix} 1 & 
 
 and consider the linear combinations $AX^{(1)}$ and $BX^{(2)}$. Find
 
+```{r}
+# A
+aMat <- c(1,-1,1,1)
+A <- matrix(aMat, nrow = 2, ncol = 2, byrow = TRUE)
+# B
+bMat <- c(1,1,1,
+          1,1,-2)
+B <- matrix(bMat, nrow = 2, ncol = 3, byrow = TRUE)
+
+# mu
+mu1Mat <- c(2,4)
+mu1 <- matrix(mu1Mat, nrow = 1, ncol = 2, byrow = TRUE)
+mu2Mat <- c(-1,3,0)
+mu2 <- matrix(mu2Mat, nrow = 1, ncol = 3, byrow = TRUE)
+
+# sigma
+sigMat <- c(4,-1,0.5,-0.5,0,
+            -1,3,1,-1,0,
+            0.5,1,6,1,-1,
+            -0.5,-1,1,4,0,
+            0,0,-1,0,2)
+sigma <- matrix(sigMat, nrow = 5, ncol = 5, byrow = TRUE)
+```
+
+
 ### (a) $E(X^{(1)})$
+
+$E(X^{(1)}) \Rightarrow \mu ^{(1)} _X$
+
+```{r}
+t(mu1)
+```
 
 ### (b) $E(AX^{(1)})$
 
+$E(AX^{(1)}) \Rightarrow AE(X^{(1)}) \Rightarrow A(\mu ^{(1)} _X)$
+
+```{r}
+A %*% t(mu1)
+```
+
 ### (c) $Cov(X^{(1)})$
+
+$Cov(X^{(1)}) \Rightarrow \Sigma_{11}$
+
+```{r}
+sig11 <- sigma[1:2,1:2]
+sig11
+```
 
 ### (d) $Cov(AX^{(1)})$
 
+$Cov(AX^{(1)}) \Rightarrow A^2 Cov(X^{(1)}) \Rightarrow A(\Sigma_{11})A'$
+
+```{r}
+A %*% sig11 %*% t(A)
+```
+
 ### (e) $E(X^{(2)})$
+
+$E(X^{(2)}) \Rightarrow \mu ^{(2)} _X$
+
+```{r}
+t(mu2)
+```
 
 ### (f) $E(BX^{(2)})$
 
+$E(BX^{(2)}) \Rightarrow BE(X^{(2)}) \Rightarrow B(\mu ^{(2)} _X)$
+
+```{r}
+B %*% t(mu2)
+```
+
 ### (g) $Cov(X^{(2)})$
+
+$Cov(X^{(2)}) \Rightarrow \Sigma_{22}$
+
+```{r}
+sig22 <- sigma[3:5,3:5]
+sig22
+```
 
 ### (h) $Cov(BX^{(2)})$
 
+$Cov(BX^{(2)}) \Rightarrow B^2 Cov(X^{(2)}) \Rightarrow B(\Sigma_{22})B'$
+
+```{r}
+B %*% sig22 %*% t(B)
+```
+
 ### (i) $Cov(X^{(1)}, X^{(2)})$
+
+```{r}
+sig12 <- sigma[3:5,1:2]
+t(sig12)
+```
 
 ### (j) $Cov(AX^{(1)}, BX^{(2)})$
 
-## 34. Consider the vectors $b' = \begin{bmatrix} -4 ,3 \end{bmatrix}$ and $d' = \begin{bmatrix} -1, 3, -2, 1 \end{bmatrix}$. Verify the Cauchy-Schwarz inequality $(b,d)^2 \leq (b'b)(d'd)$.
+$Cov(AX^{(1)}, BX^{(2)}) \Rightarrow A(\Sigma_{12})B'$
+
+```{r}
+A %*% t(sig12) %*% t(B)
+```
+
+## 34. Consider the vectors $b' = \begin{bmatrix} 2,-1,4,0 \end{bmatrix}$ and $d' = \begin{bmatrix} -1, 3, -2, 1 \end{bmatrix}$. Verify the Cauchy-Schwarz inequality $(b,d)^2 \leq (b'b)(d'd)$.
+
+```{r}
+bMat <- c(2,-1,4,0)
+dMat <-  c(-1,3,-2,1)
+
+# matrix
+b <- matrix(bMat, nrow = 1, ncol = 4, byrow = TRUE)
+d <- matrix(dMat, nrow = 1, ncol = 4, byrow = TRUE)
+```
+
+$(b,d)^2 \leq (b'b)(d'd)$
+
+Let's find the right side of the inequality first.
+
+(b'b) is:
+
+```{r}
+b2 <- b %*% t(b)
+b2
+```
+
+(d'd) is:
+
+```{r}
+d2 <- d %*% t(d)
+d2
+```
+
+The product of (b'b)(d'd) is:
+
+```{r}
+bd2 <- b2 %*% d2
+bd2
+```
+
+Now, the left side:
+
+```{r}
+bd <- b %*% t(d)
+bd^2
+```
+
+Finally, let's plug it all in.
+
+$(b,d)^2 \leq (b'b)(d'd) \Rightarrow 169 \leq 315$
+
+The Cauchy-Schwarz inequality holds!
 
 ## 42. Repeat Exercise 2.41, but with
 
@@ -192,6 +373,10 @@ Let
 
 $A = \begin{bmatrix} 1 & -1 & 0 & 0\\ 1 & 1 & -2 & 0\\ 1 & 1 & 1 & -3 \end{bmatrix}$
 
+$X' = \begin{bmatrix} X_1 & X_2 & X_3 & X_4 \end{bmatrix}$
+
+$\mu '_X = \begin{bmatrix} 3 & 2 & -2 & 0 \end{bmatrix}$
+
 ```{r}
 sigMat <- c(3,1,1,1,
             1,3,1,1,
@@ -200,13 +385,35 @@ sigMat <- c(3,1,1,1,
 aMat <- c(1,-1,0,0,
           1,1,-2,0,
           1,1,1,-3)
+muMat <- c(3,2,-2,0)
+
+# matrix
 sigma <- matrix(sigMat, nrow = 4, ncol = 4, byrow = TRUE)
 A <- matrix(aMat, nrow = 3, ncol = 4, byrow = TRUE)
+mu <- matrix(muMat, nrow = 1, ncol = 4, byrow = TRUE)
 ```
-
 
 ### (a) Find E(**AX**), the mean of **AX**.
 
-### (b) Find Cov(**AX**), the cariances and covariances of **AX**. 
+We know: $E(AX) = AE(X) = A(\mu '_X)$. Therefore, the mean of **AX** is:
+
+```{r}
+A %*% t(mu)
+```
+
+### (b) Find Cov(**AX**), the variances and covariances of **AX**. 
+
+We know: $Cov(AX) = ACov(X)A' = A(\Sigma_X)A'$. Therefore the variances and covariances of **AX** is:
+
+```{r}
+A %*% sigma %*% t(A)
+```
 
 ### (c) Which pairs of linear combinations have zero covariances?
+
+All pairs of linear combos have zero covariances as shown above. This is because the covariance matrix is structured as such:
+
+$\begin{bmatrix} V(X_1) & Cov(X_1,X_2) & Cov(X_1,X_3)\\ Cov(X_2,X_1) & V(X_2) &  Cov(X_2,X_3)\\ Cov(X_3,X_1) & Cov(X_3,X_2) & V(X_3) \end{bmatrix}$
+
+```{r, ref.label=knitr::all_labels(), echo = TRUE, eval = FALSE}
+```
