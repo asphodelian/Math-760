@@ -1,7 +1,7 @@
 ---
 title: "Math 760"
 author: "Gabrielle Salamanca"
-date: "Jan 29, 2024"
+date: "March , 2024"
 output: word_document
 ---
 
@@ -11,8 +11,125 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Chapter 3
 
-## 2.
-## 6.
-## 10.
-## 15.
-## 18.
+```{r}
+library(ggplot2)
+library(ggExtra)
+library(ggpubr)
+library(plotly)
+library(rgl)
+library(rglwidget)
+library(webshot)
+library(webshot2)
+```
+
+## 2. Given the data matrix
+
+$X = \begin{bmatrix} 3 & 4\\ 6 & -2\\ 3 & 1 \end{bmatrix}$
+
+```{r}
+Xmat <- c(3,4,6,-2,3,1)
+X <- matrix(Xmat, nrow = 3, ncol = 2, byrow = TRUE)
+```
+
+###(a) Graph the scatter plot in p = 2 dimensions, and locate the sample mean on your diagram.
+
+The sample mean matrix is:
+
+```{r}
+one <- as.matrix(rep(1, dim(X)[1]))
+n <- dim(X)[1]
+mean <- 1/n*t(X) %*% one
+print(mean)
+```
+
+Now, we can graph the scatter plot.
+
+```{r}
+plot(Xmat, pch = 19, col = 3, main = "Scatter plot in 2D", xlab = "X1", ylab = "X2")
+points(4,1, col = "purple1", pch = 19)
+```
+
+###(b) Sketch the n = 3-space representation of the data, and plot the deviation vectors $y_1 - \bar{x}_1'1$ and $y_2 - \bar{x}_2'1$.
+
+```{r}
+mean_matrix = matrix(c(4,4,4,1,1,1),ncol=2)
+d = X-mean_matrix
+colnames(d)=c("d1","d2")
+vector = rbind(5*diag(3),t(d))
+rownames(vector) <- c("X", "Y", "Z", "d1","d2")
+col = c(rep("black",3))
+d
+```
+
+```{r}
+bank <- read.table("D:/Coding/R Storage/T11-4.dat", header = FALSE)
+# vars
+x1 <- bank$V1 # CF/TD
+x2 <- bank$V2 # NI/TA
+x3 <- bank$V3 # CA/CL
+x4 <- bank$V4 # CA/NS
+x5 <- bank$V5 # pop, i = 1,2
+# plot
+plot3d(x1, x2, x3, type = "p", size = 6, lit = FALSE, box = FALSE, col = c("lightseagreen","mediumpurple1","goldenrod1"),expand = 1, main = "X1 vs X2 vs X3", sub = "3-D Plot", xlab = "X1", ylab = "X2", zlab = "X3")
+```
+
+```{r}
+plot_ly(x = x1, y = x2, z = x3, type = "scatter3d", mode = "markers", color = x5, colors = "Paired")
+```
+
+###(c) Sketch the deviation vectors in (b) emanating from teh origin. Calculate their lengths and the cosine of the angle between them. Relate these quantities to $S_n$ and **R**.
+
+## 6. Consider the data matrix
+
+$X = \begin{bmatrix} -1 & 3 & -2\\ 2 & 4 & 2\\ 5 & 2 & 3 \end{bmatrix}$
+
+###(a) Calculate the matrix deviations (residuals), $X - 1 \bar{x}'$. Is this matrix of full rank? Explain.
+
+###(b) Determine **S** and calculate the generalized sample variance |**S**|. Interpret the latter geometrically.
+
+###(c) Using the results in (b), calculate the total sample variance. [See (3-23)]
+
+## 10. When the generalized variance is zero, it is the columns of the mean corrected data matrix $X_c = X - 1 \bar{x}'$ that are linearly dependent, not necessarily those of the data matrix itself. Given the data
+
+$\begin{bmatrix} 3 & 1 & 0\\ 6 & 4 & 6\\ 4 & 2 & 2\\ 7 & 0 & 3\\ 5 & 3 & 4 \end{bmatrix}$
+
+###(a) Obtain the mean corrected data matrix, and verify that the columns are linearly dependent. Specify an $a' = \begin{bmatrix} a_1 & a_2 & a_3 \end{bmatrix}$ vector that establishes the dependence. 
+
+###(b) Obtain the sample covariance **S**, and verify that the generalized variance is zero.
+
+###(c) Show that the columns of the data matrix are linearly independent in this case.
+
+## 15. Repeat Exercise 3.14 using the data matrix
+
+$X = \begin{bmatrix} 1 & 4 & 3\\ 6 & 2 & 6\\ 8 & 3 & 3 \end{bmatrix}$
+
+and the linear combinations
+
+$b'X = \begin{bmatrix} 1 & 1 & 1 \end{bmatrix} \begin{bmatrix} X_1\\ X_2\\ X_3 \end{bmatrix}$
+
+and
+
+$c'X = \begin{bmatrix} 1 & 2 & -3 \end{bmatrix} \begin{bmatrix} X_1\\ X_2\\ X_3 \end{bmatrix}$
+
+###(a) Evaluate the sample means, variances, and covariance **b'X** and **c'X** from first principles. That is, calculate the observed values of **b'X** and **c'X**, and then use the sample mean, variance, and covariance formulas.
+
+###(b) Calculate the sample means, vairances, and covairances of **b'X** and **c'X** using (3-36). Compare the results in (a) and (b).
+
+## 18. Energy consumption in 2001, by state, from the major sources
+
+$x_1$ = petroleum
+$x_2$ = natural gas
+$x_3$ = hydroelectric power
+$x_4$ = nuclear electric power
+
+is recorded in quadrillions $(10^{15})$ in BTUs (Source: *Statistcal Abstract of the United States 2006*).
+
+The resulting mean and covariance matrix are
+
+$\bar{x} = \begin{bmatrix} 0.766\\ 0.508\\ 0.438\\ 0.161 \end{bmatrix}$
+
+$S = \begin{bmatrix} 0.856 & 0.635 & 0.173 & 0.096\\ 0.635 & 0.568 & 0.128 & 0.067\\ 0.173 & 0.127 & 0.171 & 0.039\\ 0.096 & 0.067 & 0.039 & 0.043 \end{bmatrix}$
+
+###(a) Using the summary statistics, determine the sample mean and variance of a state's total energy consumption for these major sources.
+
+###(b) Determine the sample mean and variance of the excess of petroleum consumption over natural gas consumption. Also find the sample covariance of this variable with the total variable in part a.
