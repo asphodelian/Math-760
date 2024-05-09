@@ -1,20 +1,744 @@
 ---
 title: "Math 760"
 author: "Gabrielle Salamanca"
-date: "Jan 29, 2024"
+date: "May 9, 2024"
 output: word_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
 ```
 
 # Chapter 7
 
-## 2.
-## 8.
-## 9.
-## 12.
-## 17.
-## 22.
-## 25.
+```{r}
+library(car)
+library(dplyr)
+library(ggplot2)
+library(leaps)
+library(lmtest)
+library(matlib)
+library(MVN)
+library(SIBER)
+library(stats)
+```
+
+## 2. Given the data
+
+```{r}
+fullMat <- c(10,5,7,19,11,18,
+             2,3,3,6,7,9,
+             15,9,3,25,7,13)
+full <- matrix(fullMat, nrow = 3, ncol = 6, byrow = TRUE)
+rownames(full)<- c("z1", "z2", "y")
+full
+```
+
+## for the regression model $Y_j= \beta_1z_{j1} + \beta_2z_{j2} + \epsilon_i$ (j = 1,2,...,6) to the standardized form of the variables y, $z_1$, $z_2$. From this fit, deduce the corresponding fitted regression equation for the original (not standardized) variables.
+
+```{r}
+n <- dim(full)[1]
+full1 <- as.data.frame(full)
+#  function
+standardize = function(x){ 
+  z <- (x - mean(x)) / sqrt((n-1)*sd(x))
+  return(z) 
+} 
+# standardize 
+full1 <- apply(full1, 2, standardize) 
+cat("The standardized form of the variables are: \n")
+t(full1)
+# separate
+c1 <- t(full1[1,])
+c2 <- t(full1[2,])
+# means
+mc1 <- mean(c1)
+mc2 <- mean(c2)
+# cat
+cat("\nThe mean of z1 is", mc1, "\n")
+cat("The mean of z2 is", mc2, "\n")
+```
+
+The fitted version of the equation $Y_j= \beta_1z_{j1} + \beta_2z_{j2} + \epsilon_i$ is $\hat{y} = \hat{\beta}_1z_1 + \hat{\beta}_2z_2$. And with the results above, the fitted equation is:
+
+$\hat{y} = 0.76z_1 - 1.35z_2$
+
+Then, we find the values for the regular data to plug into the fitted equation. We will need the means and the square root of the diagonal of their covariance matrix.
+
+```{r}
+z1 <- t(full[1,])
+z2 <- t(full[2,])
+y <- t(full[3,])
+# means
+mean1 <- mean(z1)
+mean2 <- mean(z2)
+mean3 <- mean(y)
+# covariance
+fullCov <- cov(t(full))
+squareCov <- sqrt(fullCov)
+# cat
+cat("The mean for z1 is:", mean1, "\n")
+cat("The mean for z2 is:", mean2, "\n")
+cat("The mean for y is:", mean3, "\n")
+cat("The square root covariance matrix of the predictors is: \n")
+squareCov
+```
+
+Thus:
+
+$\frac{\hat{y}-12}{7.67} = 0.7619028 \left( \frac{z_1 - 11.66667}{5.715476} \right)  - 1.352614 \left( \frac{z_2 - 5}{2.756810} \right)$ 
+
+$0.7619028 \left( \frac{z_1 - 11.66667}{5.715476} \right) = 0.1333052z_1 - 1.555228$
+
+$- 1.352614 \left( \frac{z_2 - 5}{2.756810} \right) = -0.4906448z_2 + 2.453224$
+
+$\Rightarrow \frac{\hat{y}-12}{7.668116} = 0.1333052z_1 - 1.555228 - 0.4906448z_2 + 2.453224 = 0.1333052z_1 - 0.4906448z_2 + 0.897996$ 
+
+$\Rightarrow \hat{y}-12 = 1.0222z_1 - 3.762321z_2 + 6.885937$ 
+
+$\Rightarrow  \hat{y} = 1.0222z_1 - 3.762321z_2 + 18.88594$
+
+And simplifying that, we get: $\hat{y} = 1.02z_1 - 3.76z_2 + 18.89$
+
+## 8. Recall that that the hat matrix is defined by $H = Z (Z'Z)^{-1}Z'$ with diagonal elements $h_jj$. 
+
+### (a) Show that H is an idempotent matrix [See Result 7.1 and (7-6)]
+
+**Result 7.1**
+Let **Z** have full rank ($r+1 \leq n$). The least squares estimate of $\beta$ in (7-3) is given by: $\hat{\beta} = (Z'Z)^{-1}Z'y$. Let $\hat{y} = Z\hat{\beta} = Hy$ denote the fitted values of y, where $H = (Z'Z)^{-1}Z'$ is called "hat" matrix. Then the residuals $\hat{\epsilon} = y - \hat{y} = [I - (Z'Z)^{-1}Z']y = (I-H)y$ satisfy $Z' \hat{\epsilon} = 0$ and $\hat{y}' \hat{\epsilon} = 0$. Also, the residual sum of squares = $\sum^n_{j=1} (y_j - \hat{\beta}_0 - \hat{\beta_1}z_{j1} - ... - \hat{\beta_r}z_{jr}) = \hat{\epsilon}' \hat{\epsilon} = y'[I - Z(Z'Z)^{-1}Z']y = y'y - y'Z \hat{\beta}$
+
+**(7-6)**
+$[I - Z(Z'Z)^{-1}Z']'[I - Z(Z'Z)^{-1}Z'] = I - 2[Z(Z'Z)^{-1}Z'] + Z(Z'Z)^{-1}Z'[Z(Z'Z)^{-1}Z'] = [I - Z(Z'Z)^{-1}Z']$ (idempotent)
+
+Thus, $H^2 = Z(Z'Z)^{-1}Z'[Z(Z'Z)^{-1}Z'] = Z(Z'Z)^{-1}Z' = H$
+
+### (b) Show that $0 < h_{jj} < 1$ (j =1,2,...,n), and that $\sum^n_{j=1} h_{jj} = r + 1$, where r is the number of independent variables in the regression model. (In fact, $\frac{1}{n} \leq h_{jj} <1$)
+
+Because [I-H] is an idempotent matrix, it's a positive semidefinite. Then, let a be a $nx1$ unit vector with $j^{th}$ element 1. Then, $0 \leq a'(I-H)a = (1 - h_{jj})$; that is, $h_{jj} \leq 1$.
+
+$(Z'Z)^{-1}$ is a positive definite matrix. Thus $h_{jj} = b_j' (Z'Z)^{-1} b_j$, where $b_j$ is a the $j^{th}$ row of Z.
+
+$\sum^{r+1}_{i=1} h_{jj} = tr[Z(Z'Z)^{-1}Z'] = tr[(Z'Z)^{-1}(Z'Z)] = tr(I_{r+1}) = r + 1$
+
+### (c) Verify, for the simple linear regression model with one independent variable z, that the leverage $h_{jj}$ is given by $h_{jj} = \frac{1}{n} + \frac{(z_j - \bar{z})^2}{\sum^n_{j=1} (z_j - \bar{z})^2}$
+
+Using 
+
+$(Z'Z)^{-1} = \frac{1}{n \sum_{i=1}^n (z_j - \bar{z})^2} \begin{bmatrix} \sum_{i=1}^n z_i^2 & -\sum_{i=1}^nz_i \\ -\sum_{i=1}^n z_i & n \end{bmatrix}$
+
+We get 
+
+$h_{jj} = \begin{bmatrix} 1 & z_j \end{bmatrix} (Z'Z)^{-1} \begin{bmatrix} 1 \\ z_j \end{bmatrix} = \frac{1}{n \sum_{i=1}^n (z_j - \bar{z})^2} \left( \sum_{i=1}^n z_i^2 - 2 z_j \sum_{i=1}^n z_i + n z_j^2 \right) = \frac{1}{n} + \frac{(z_j - \bar{z})^2}{\sum_{i=1}^n (z_j - \bar{z})^2}}$
+
+## 9. Consider the following data on one predictor variable $z_1$ and two responses $Y_1$ and $Y_2$
+
+```{r}
+fullMat <- c(-2,-1,0,1,2,5,3,4,2,1,-3,-1,-1,2,3)
+full <- matrix(fullMat, nrow = 3, ncol = 5, byrow = TRUE)
+rownames(full)<- c("z1", "y1", "y2")
+full
+```
+
+## Determine the least squares estimates of the parameters in the bivariate straight-line regression model
+
+$Y_{j1} = \beta_{01} + \beta_{11} z_{j1} + \epsilon_{j1}$
+
+$Y_{j2} = \beta_{02} + \beta_{12} z_{j2} + \epsilon_{j2}$
+
+## where j = 1,2,3,4,5. Also, calculate the matrices of fitted values $\hat{Y}$ and residuals $\hat{\epsilon}$ with $Y = [y_1 | y_2]$. Verify the sum of squares and cross-products decomposition $Y'Y = \hat{Y'} \hat{Y} + \hat{\epsilon'} \hat{\epsilon}$
+
+To find the least squares estimate of the $\beta's$, we use $\hat{\beta}= (Z'Z)^{-1}Z'y$. Let's find our Z's.
+
+```{r}
+Zmat <- c(1,1,1,1,1,
+          -2,-1,0,1,2)
+Z <- matrix(Zmat, nrow = 2, ncol = 5, byrow = TRUE)
+cat("The Z matrix is \n")
+t(Z)
+# inverse
+prodZ <- Z %*% t(Z) 
+invZ <- solve(prodZ)
+cat("\nThe inverse of Z'Z is \n")
+invZ
+```
+
+Now, let's find our $\beta 's$.
+
+```{r}
+b1 <- invZ %*% Z %*% full[2,]
+b2 <- invZ %*% Z %*% full[3,]
+b <- cbind(b1,b2)
+# print
+cat("Our least squares estimates matrix of our parameters is \n")
+b
+```
+
+We'll now calculate the matrices of fitted values $\hat{Y}$, which is calculated by multiplying $Z$ and $\hat{\beta}$. 
+
+```{r}
+Yhat <- t(Z) %*% b
+Yhat
+```
+
+
+Finally, we'll calculate the residuals $\hat{\epsilon}$ with $Y = [y_1 | y_2]$. It's calculated by subtracting $Y$ and $\hat{Y}$.
+
+```{r}
+y1 <- full[2,]
+y1 <- t(y1)
+y2 <- full[3,]
+y2 <- t(y2)
+y <- rbind(y1,y2)
+error <- t(y) - Yhat
+# print
+cat("The residual matrix is \n")
+error
+```
+
+After all that, we must verify the sum of squares and cross-products decomposition with this equation: $Y'Y = \hat{Y'} \hat{Y} + \hat{\epsilon'} \hat{\epsilon}$
+
+```{r}
+prodY <- y %*% t(y)
+cat("The Y'Y matrix is \n")
+prodY
+# hats
+prodHat <- t(Yhat) %*% Yhat  
+prodError <- t(error) %*% error  
+cat("\nThe right side of the equation is \n")
+prodHat + prodError
+```
+
+## 12. Given the mean vector and covariance of Y, $Z_1$, and $Z_2$,
+
+```{r}
+muMat <- c(4,3,-2)
+mu <- matrix(muMat, nrow = 3, ncol = 1, byrow = TRUE)
+sigMat <- c(9,3,1,3,2,1,1,1,1)
+sigma <- matrix(sigMat, nrow = 3, ncol = 3, byrow = TRUE)
+cat("mu Matrix \n")
+mu
+cat("\n Sigma matrix \n")
+sigma
+```
+
+## determine each of the following.
+
+### (a) The best linear predictor $\beta_0 + \beta_1 Z_1 + \beta_2 Z_2$ of Y
+
+To find $\beta$ and $\beta_0$, we use these equations:
+
+$\beta = \Sigma^{-1}_{ZZ} \sigma_{ZY}$
+
+$\beta_0 = \mu_Y - \beta' \mu_Z$
+
+```{r}
+muY <- mu[1,]
+muZ <- mu[2:3,]
+muZ <- muZ
+# sigma
+sYY <- sigma[1,1]
+ssZYmat <- c(3,1)
+ssZY <- matrix(ssZYmat, nrow = 1, ncol = 2, byrow = TRUE)
+sZY <- t(ssZY)
+sZZmat <- c(2,1,1,1)
+sZZ <- matrix(sZZmat, nrow = 2, ncol = 2, byrow = TRUE)
+# betas
+b <- inv(sZZ) %*% sZY
+b0 <- muY - (t(b) %*% muZ)
+# print
+cat("Our beta matrix is \n")
+b
+cat("\nBeta-0 is", b0)
+```
+
+$Y = \beta_0 + \beta_1 Z_1 + \beta_2 Z_2 = -4 + 2z_1 - z_2$
+
+### (b) The mean square error of the best linear predictor
+
+This is calculated with this equation: $\sigma_{yy} - \sigma'_{zy} \Sigma^{-1}_{ZZ} \sigma_{ZY}$
+
+```{r}
+MSE <- sYY - ssZY %*% inv(sZZ) %*% sZY
+MSE
+```
+
+### (c) The population multiple correlation coefficient
+
+This is calculated as such: $\rho_{Y(x)} = \sqrt{\frac{\sigma'_{zy} \Sigma^{-1}_{ZZ} \sigma_{ZY}}{\sigma_{YY}}}$
+
+```{r}
+pY <- sqrt((ssZY %*% inv(sZZ) %*% sZY)/sYY)
+pY
+```
+
+### (d) The partial correlation coefficient $\rho_{Y Z_1 * Z_2}$
+
+The partial correlation coefficient formula is provided by (7-56):
+
+$\rho_{Y_1Y_2*Z} = \frac{\sigma_{Y_1Y_2*Z}}{\sqrt{\sigma_{Y_1Y_1*Z}} \sqrt{\sigma_{Y_2Y_2*Z}}}$
+
+We'll first need to partition our $\Sigma$ matrix and determine to covariance of $\begin{bmatrix} Y \\ Z_1\end{bmatrix}$.
+
+```{r}
+sigma
+# partition
+s1mat <- c(9,3,3,2)
+s2mat <- c(1,1)
+s4 <- sigma[3,3]
+# matrix
+s1 <- matrix(s1mat, nrow = 2, ncol = 2, byrow = TRUE)
+s2 <- matrix(s2mat, nrow = 2, ncol = 1, byrow = TRUE)
+s3 <- matrix(s2mat, nrow = 1, ncol = 2, byrow = TRUE)
+# calculate
+mat <- s1 - (s2 %*% t(s4) %*% s3)
+# print
+cat("\nThe covariance matrix is \n")
+mat
+```
+
+Now, $\rho_{Y_1Y_2*Z}$ is
+
+```{r}
+rho <- mat[1,2]/sqrt(mat[1,1] * mat[2,2])
+rho
+```
+
+## 17. Consider the Forbes data in Exercise 1.4
+
+```{r}
+largeMat <- c(1, 108.28, 17.05, 1484.10, 
+              2, 152.36, 16.59, 750.33,
+              3, 95.04, 10.91, 766.42,
+              4, 65.45, 14.14, 1110.46,
+              5, 62.97, 9.52, 1031.29,
+              6, 263.99, 25.33, 195.26,
+              7, 265.19, 18.54, 193.83,
+              8, 285.06, 15.73, 191.11,
+              9, 92.01, 8.10, 1175.16,
+              10, 165.68, 11.13, 211.15)
+large <- matrix(largeMat, nrow = 10, ncol = 4, byrow = TRUE)
+colnames(large) <- c("order", "sales", "profits", "assets")
+large
+```
+
+### (a) Fit a linear regression model to these data using profits as the dependent variable and sales and assets as the indepedent variables.
+
+```{r}
+large <- as.data.frame(large)
+sales <- large$sales
+profits <- large$profits
+assets <- large$assets
+order <- large$order
+# fit
+company <- lm(profits ~ sales + assets)
+summary(company)
+```
+
+The linear regression model is: $Y = 0.013325 + 0.068058x_1 + 0.005768x_3$
+
+### (b) Analyze the residuals to check the adequacy of the model. Compute the leverages associated with the data points. Does one (or more) of these companies stand out as an outlier in the set of independent variable data points?
+
+```{r}
+res <- resid(company)
+# plot
+plot(fitted(company), res)
+abline(0,0)
+# qq
+qqnorm(res)
+qqline(res)
+# histogram
+ggplot(data = large, aes(x = res)) +
+    geom_histogram(bins = 6,fill = 'steelblue', color = 'black') +
+    labs(title = 'Histogram of Residuals', x = 'Residuals', y = 'Frequency')
+# plot
+plot(order, res)
+```
+
+Given the small sample size, I would say the data is independent, but I would caution about it following a normal distribution due to 3 points being quite far from the line. However, the histogram does give the vague bell-shape curve, even if there's am empty space. 
+
+```{r}
+com <- large[2:4]
+n <- dim(com)[1]
+p <- dim(com)[2] 
+# leverage
+avg <- 3*(p/n)
+cat("The average leverage is", avg)
+hats <- as.data.frame(hatvalues(company))
+hats
+```
+
+We see that most of the leverage values are less than 0.9, which means there are no unusual observations.
+
+### (c) Generate a 95% prediction interval for profits corresponding to sales of 100 (billions of dollars) and assets of 500 (billion off dollars).
+
+Here's what we know:
+
+From (a), $Y = 0.013325 + 0.068058x_1 + 0.005768x_3$
+
+sales, $x_1 = 100$
+assets, $x_3 = 500$
+
+The 95% prediction interval for profits is:
+
+```{r}
+newCo <- data.frame(sales = 100, assets = 500)
+predict(company, newdata = newCo, interval = "prediction", level = 0.95)
+```
+
+### (d) Carry out a likelihood ratio test of $H_0: \beta_2 = 0$ with significance level of $\alpha = 0.05$. Should the original model be modified. Discuss.
+
+ $H_0: \beta_2 = 0$ vs $H_1: \beta_2 \neq 0$
+ 
+```{r}
+lineCo <- lm(profits ~ sales)
+lrtest(lineCo, company)
+```
+ 
+ The $\chi^2$ p-value is 0.1827, which is greater than $\alpha = 0.05$, so we cannot reject $H_0$. If we wanted to fit a model to fit our data better, we should consider only having sales as a predictor for profits.
+
+## 22. Using the data on bone mineral content in Table 1.8
+
+```{r}
+bone <- read.table("D:/Coding/R Storage/T1-8.dat", header = FALSE)
+# names
+domRad <- bone$V1
+rad <- bone$V2
+domHum <- bone$V3
+hum <- bone$V4
+domUln <- bone$V5
+ulna <- bone$V6
+```
+
+### (a) Perform a regression analysis by fitting the response for the dominant radius bone to the measurements on the last four bones
+
+When we perform a regression analysis of $DomRad = \ DomHum + \ Hum \ + \ DomUlna \ + \ Ulna$, our results are:
+
+```{r}
+radius.lm <- lm(domRad ~ domHum + hum + domUln + ulna)
+summary(radius.lm)
+```
+
+#### (i) Suggest and fit appropriate linear regression models.
+
+Based on the results, it would be best to remove the humerus variable, and possibly also both ulna variables. We'll run one with both ulnas and one without them.
+
+```{r}
+rad.lm1 <- lm(domRad ~ domHum + domUln + ulna)
+rad.lm2 <- lm(domRad ~ domHum)
+summary(rad.lm1)
+summary(rad.lm2)
+```
+
+It looks like with only the dominant humerus as a predictor, the model is the best fit. Though, I will bring to attention to the $R^2$ values for the no-ulna model. They are notably smaller than the one where we included the ulnas.
+
+So, let's also try with one ulna each just to see if our $R^2$ values are better.
+
+```{r}
+rad.lm3 <- lm(domRad ~ domHum + domUln)
+rad.lm4 <- lm(domRad ~ domHum + ulna)
+summary(rad.lm3)
+summary(rad.lm4)
+```
+
+Both of these models are better than the no-ulna model based on the $R^2$ values. If one had to choose, the model with the dominant bones would be the best: $DomRad = 0.1637 + 0.1625 \ DomHum \ + 0.5519 \ DomUlna \ $
+
+#### (ii) Analyze the residuals
+
+```{r}
+order <- c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25)
+bones <- cbind(order, bone)
+order <- bones$order
+res <- resid(rad.lm3)
+# plot
+plot(fitted(rad.lm3), res)
+abline(0,0)
+# qq
+qqnorm(res)
+qqline(res)
+# histogram
+ggplot(data = bone, aes(x = res)) +
+    geom_histogram(bins = 8,fill = 'steelblue', color = 'black') +
+    labs(title = 'Histogram of Residuals', x = 'Residuals', y = 'Frequency')
+# plot
+plot(order, res)
+```
+
+From these plots, it generally follows a normal distribution, but I would want to be careful of certain points that stray a bit from the line in the fitted values and order plots.
+
+### (b) Perform a multivariate multiple regression analysis by fitting the responses from both radius bones.
+
+```{r}
+rads.lm <- lm(cbind(domRad, rad)~ domHum + hum + domUln + ulna, data = bone)
+summary(rads.lm)
+```
+
+When running the multivariate multiple regression analysis, we find that the one with radius is the better model, especially considering the $R^2$ values.
+
+### (c) Calculate the AIC for the model you chose in (b) and for the full model.
+
+```{r}
+rad.lm5 <- lm(rad ~ domHum + hum + domUln + ulna, data = bone)
+# AIC
+b <- AIC(rad.lm3)
+full <- AIC(rad.lm5)
+# print
+cat("The AIC for the model domRad = domHum + domUln is", b, "\n")
+cat("The AIC for the model rad = domHum + hum + domUln + ulna is", full)
+```
+
+## 25. Amitriptyline is prescribed by some physicians as an antidepressant. However, there are also conjectured side effects that seem to be related to the use of the drug: irregular heartbeat, abnormal blood pressures, and irregular waves on the electrocardiogram, among other things. Data gathered on 17 patients who were admitted to the hospital after an amitriptyline overdose are given in Table 7.6. The two response variables are:
+
+$Y_1 =$ Total TCAD plasma level (TOT)
+$Y_2 =$ Amount of amitriptyline present in TCAD plasma level (AMI)
+
+## The five predictor variables are:
+
+$Z_1 = $ Gender, where fem = 1 and male = 0 (GEN)
+
+$Z_2 = $ Amount of antidepressants taken at time of overdose (AMT)
+
+$Z_3 = $ PR wave measurement (PR)
+
+$Z_4 = $ Diastolic blood pressure (DIAP)
+
+$Z_5 = $ QRS wave measurement (QRS)
+
+```{r}
+drug <- read.table("D:/Coding/R Storage/T7-6.dat", header = FALSE)
+# names
+y1 <- drug$V1
+y2 <- drug$V2
+z1 <- drug$V3
+z2 <- drug$V4
+z3 <- drug$V5
+z4 <- drug$V6
+z5 <- drug$V7
+```
+
+### (a) Perform a regression analysis using only the first response $Y_1$
+
+```{r}
+drug1.lm1 <- lm(y1 ~ z1 + z2 + z3 + z4 + z5, data = drug)
+summary(drug1.lm1)
+```
+
+When running a regression analysis on the full model with $Y_1$ as the response, we find that $Z_5$ isn't as significant at $\alpha = 0.05$, so we could drop that variable. 
+
+#### (i) Suggest and fit appropriate linear regression models.
+
+Let's see an anova to see which variables to keep.
+
+```{r}
+anova(drug1.lm1)
+```
+
+After running anova, we find that the model with only $Z_2$ is our best fit. Let's see if that's true.
+
+```{r}
+drug1.lm2 <- lm(y1 ~ z2, data = drug)
+summary(drug1.lm2)
+```
+
+All are significant, but I do want to try adding $Z_1$ to see if our $R^2$ values are better.
+
+```{r}
+drug1.lm3 <- lm(y1 ~ z1 + z2, data = drug)
+summary(drug1.lm3)
+```
+
+The $R^2$ values are better, even if the intercept wasn't significant. Let's try with the other variables just to make sure.
+
+```{r}
+drug1.lm4 <- lm(y1 ~ z1 + z2 + z3, data = drug)
+drug1.lm5 <- lm(y1 ~ z1 + z2 + z3 + z4, data = drug)
+drug1.lm6 <- lm(y1 ~ z1, data = drug)
+summary(drug1.lm4)
+summary(drug1.lm5)
+summary(drug1.lm6)
+```
+
+Comparing all these models, the one with 2 predictors is the best.
+
+```{r}
+drug1.lm3
+```
+
+#### (ii) Analyze the residuals
+
+```{r}
+order <- c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17)
+drugs <- cbind(order, drug)
+order <- drugs$order
+res <- resid(drug1.lm3)
+# plot
+plot(fitted(drug1.lm3), res)
+abline(0,0)
+# qq
+qqnorm(res)
+qqline(res)
+# histogram
+ggplot(data = drug, aes(x = res)) +
+    geom_histogram(bins = 10,fill = 'steelblue', color = 'black') +
+    labs(title = 'Histogram of Residuals', x = 'Residuals', y = 'Frequency')
+# plot
+plot(order, res)
+```
+
+I would say the residuals are independent and follow a normal distribution, but I do spy an outlier.
+
+#### (iii) Construct a 95% prediction interval for Total TCAD for $z_1 = 1$, $z_2 = 1200$, $z_3 = 140$, $z_4 = 70$, and $z_5 = 85$.
+
+```{r}
+newD <- data.frame(z1 = 1, z2 = 1200, z3 = 140, z4 = 70, z5 = 85)
+pi1 <- predict(drug1.lm3, newdata = newD, interval = "prediction", level = 0.95)
+cat("The 95% prediction interval is: \n")
+pi1
+```
+
+### (b) Repeat (a) using the second response $Y_2$
+
+```{r}
+drug2.lm1 <- lm(y2 ~ z1 + z2 + z3 + z4 + z5, data = drug)
+anova(drug2.lm1)
+```
+
+Even if we change the response variable, we still find that having only two predictors, $Z_1$ and $Z_2$, is the best fit, even if the intercept isn't significant as shown below.
+
+```{r}
+drug2.lm2 <- lm(y2 ~ z1 + z2, data = drug)
+summary(drug2.lm2)
+cat("\n Our model is \n")
+drug2.lm2
+```
+Let's look at the residuals.
+
+```{r}
+res <- resid(drug2.lm2)
+# plot
+plot(fitted(drug2.lm2), res)
+abline(0,0)
+# qq
+qqnorm(res)
+qqline(res)
+# histogram
+ggplot(data = drug, aes(x = res)) +
+    geom_histogram(bins = 10,fill = 'steelblue', color = 'black') +
+    labs(title = 'Histogram of Residuals', x = 'Residuals', y = 'Frequency')
+# plot
+plot(order, res)
+```
+
+I would say the residuals are independent and follow a normal distribution, but I do spy an outlier or two.
+
+Finally, the 95% prediction interval, where $z_1 = 1$, $z_2 = 1200$, $z_3 = 140$, $z_4 = 70$, and $z_5 = 85$.
+
+```{r}
+pi2 <- predict(drug2.lm2, newdata = newD, interval = "prediction", level = 0.95)
+cat("The 95% prediction interval is: \n")
+pi2
+```
+
+### (c) Perform a multivariate multiple regression analysis using both responses $Y_1$ and $Y_2$.
+
+```{r}
+drugs.lm1 <- lm(cbind(y1, y2)~ z1 + z2 + z3 + z4 + z5, data = drug)
+summary(drugs.lm1)
+```
+
+For $Y_1$, I could drop $Z_5$; but for $Y_2$, I would drop the last three variables.
+
+#### (i) Suggest and fit appropriate linear regression models.
+
+```{r}
+Anova(drugs.lm1)
+```
+
+It seems we will need to keep $Z_1$ and $Z_2$ for both of them.
+
+```{r}
+drugs.lm2 <- lm(cbind(y1, y2)~ z1 + z2, data = drug)
+summary(drugs.lm2)
+```
+
+#### (ii) Analyze the residuals
+
+```{r}
+res <- resid(drugs.lm2)
+# plot
+plot(fitted(drugs.lm2), res)
+abline(0,0)
+# qq
+mvn(res, multivariatePlot = "qq")
+# histogram
+hist(res)
+```
+
+The residuals seem to be independent and follow a normal distribution.
+
+#### (iii) Construct a 95% prediction ellipse for both Ttotal TCAD and Amount of amitriptyline for $z_1 = 1$, $z_2 = 1200$, $z_3 = 140$, $z_4 = 70$, and $z_5 = 85$. Compare this ellipse with the prediction intervals in (a) and (b). Comment.
+
+The 95% prediction ellipse is:
+
+```{r}
+confidenceEllipse <- function(mod, newdata, level = 0.95, ggplot = TRUE){
+# labels
+lev_lbl <- paste0(level * 100, "%")
+resps <- colnames(mod$coefficients)
+title <- paste(lev_lbl, "prediction ellipse for", resps[1], "and", resps[2])
+# prediction
+p <- predict(mod, newdata)
+# center of ellipse
+cent <- c(p[1,1],p[1,2])
+# shape of ellipse
+Z <- model.matrix(mod)
+Y <- mod$model[[1]]
+n <- nrow(Y)
+m <- ncol(Y)
+r <- ncol(Z) - 1
+S <- crossprod(resid(mod))/(n-r-1)
+# radius of circle generating the ellipse
+tt <- terms(mod)
+Terms <- delete.response(tt)
+mf <- model.frame(Terms, newdata, na.action = na.pass,
+                  xlev = mod$xlevels)
+z0 <- model.matrix(Terms, mf, contrasts.arg = mod$contrasts)
+rad <- sqrt((m*(n-r-1)/(n-r-m)) * qf(level,m,n-r-m) *
+              z0 %*% solve(t(Z)%*%Z) %*% t(z0))
+ # generate ellipse using ellipse function in car package
+ell_points <- car::ellipse(center = c(cent), shape = S,
+                           radius = c(rad), draw = FALSE)
+# ggplot2 plot
+if(ggplot){
+  ell_points_df <- as.data.frame(ell_points)
+  ggplot2::ggplot(ell_points_df, ggplot2::aes(.data[["x"]], .data[["y"]])) +
+  ggplot2::geom_path() +
+  ggplot2::geom_point(ggplot2::aes(x = .data[[resps[1]]],
+                                   y = .data[[resps[2]]]),
+                      data = data.frame(p)) +
+  ggplot2::labs(x = resps[1], y = resps[2],
+                    title = title)
+  } else {
+    # base R plot
+    plot(ell_points, type = "l",
+         xlab = resps[1], ylab = resps[2],
+         main = title)
+    points(x = cent[1], y = cent[2])
+  }
+}
+
+# ellipse
+confidenceEllipse(mod = drugs.lm2, newdata = newD)
+```
+
+Comparing the ellipse to the prev two prediction intervals
+
+```{r}
+pi1
+cat("\n")
+pi2
+```
+
+The ellipse is larger, but it is because we had to to make sure we had enough points to fit both the upper values. I can't say for sure if we did consider our extremely small lower value for (b), but it does seem the ellipse fitted within those parameters.
+
+```{r, ref.label=knitr::all_labels(), echo = TRUE, eval = FALSE}
+```
